@@ -67,3 +67,15 @@ jobs:
       with:
         name: allure-report
         path: allure-report/
+
+    #Step3.1: Upload Allure results to Netlify
+    # site_id = projectid in netlify, auth token is generated in netlify user settings.
+    - name: Deploy Allure Report to Netlify
+      if: ${{ always() }}
+      run: |
+        npx netlify deploy \
+        --site ${{ secrets.NETLIFY_SITE_ID }} \
+        --prod \
+        --dir allure-report
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
