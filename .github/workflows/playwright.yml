@@ -9,19 +9,61 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
+    #Step1.1: create checkout for pull or push for branch  
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
     - name: Install dependencies
       run: npm ci
+    #Step 1.4: Cache playwright browsers
+    - name: Cache Playwright Browsers
+      uses: actions/cache@v3
+      id: playwright-cache
+      with:
+        path: playwright/.cache/
+        key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    
+    #Step1.5: install playwright browsers  if cache is not hit  
     - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'  
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
+    
+    #Step 1.7: Upload Playwright report as artifact if the workflow is not cancelled 
+    # Commenting this to caputure reports to allure report instead of playwright report, as allure report is more detailed and has better UI for analysis. 
+    #- uses: actions/upload-artifact@v4
+    #  if: ${{ !cancelled() }}
+    #  with:
+    #    name: playwright-report
+    #    path: playwright-report/
+    #    retention-days: 15
+
+    #Step2.1: Allure reports need java, so install java
+    - name: Set up Java
+      uses: actions/setup-java@v3
       with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 15
+        distribution: 'temurin'
+        java-version: '17'
+    #Step2.2: Install allure commandline tool to generate allure report from the results
+    - name: Install Allure Commandline globally 
+      run: |
+        npm install -g allure-commandline
+        echo "Allure Commandline installed successfully to GITHUB_PATH" 
+        echo "$(npm bin -g)" >> $GITHUB_PATH
+        #Verify installation
+        allure --version
+ 
+    #Step2.3: Generate allure report from the results and upload it as artifact if
+    # the workflow is not cancelled
+    - name: Generate and Upload Allure Report
+      if: ${{ always() }}
+      run: |
+        npx allure generate playwright-results/ --clean -o allure-report/
+      continue-on-error: true
+    - name: Upload Allure Report as artifact  
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: allure-report/
