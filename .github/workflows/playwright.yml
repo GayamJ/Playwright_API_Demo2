@@ -7,6 +7,10 @@ on:
 jobs:
   test:
     timeout-minutes: 60
+    #Step1.0 runs on playwright docker image with all browsers pre-installed
+    #docker pull mcr.microsoft.com/playwright:v1.58.2-noble
+    container: 
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     runs-on: ubuntu-latest
     steps:
     #Step1.1: create checkout for pull or push for branch  
