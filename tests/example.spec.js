@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { assert } from 'node:console';
 
 test('playwright website has title', async ({ page }) => {
   await page.goto('https://playwright.dev/');
@@ -16,4 +17,13 @@ test('playwright website has get started link', async ({ page }) => {
 
   // Expects page to have a heading with the name of Installation.
   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+});
+
+test.only('test google ', async ({ page }) => {
+  await page.goto('https://www.google.com/');
+  //Type Title of the page
+  const var_title =await page.title();
+  console.log('Title of the page is: ' + var_title);
+  assert(var_title === 'Google', 'Title does not match expected value');
+  expect(var_title).toBe('Google');
 });
